@@ -11,12 +11,23 @@ const contactContent = "Scelerisque eleifend donec pretium vulputate sapien. Rho
 const app = express();
 
 app.set('view engine', 'ejs');
-
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(express.static("public"));
 
+const blogPosts = [
+  {
+    id: "some-lorem-ipsum",
+    title: "Some Lorem Ipsum",
+    body: "Lacus vel facilisis volutpat est velit egestas dui id ornare. Semper auctor neque vitae tempus quam. Sit amet cursus sit amet dictum sit amet justo. Viverra tellus in hac habitasse. Imperdiet proin fermentum leo vel orci porta. Donec ultrices tincidunt arcu non sodales neque sodales ut. Mattis molestie a iaculis at erat pellentesque adipiscing. Magnis dis parturient montes nascetur ridiculus mus mauris vitae ultricies. Adipiscing elit ut aliquam purus sit amet luctus venenatis lectus. Ultrices vitae auctor eu augue ut lectus arcu bibendum at. Odio euismod lacinia at quis risus sed vulputate odio ut. Cursus mattis molestie a iaculis at erat pellentesque adipiscing."
+  }
+]
+// Set up Constants
+// View lengths truncate long post titles and bodies
+const TITLEVIEWLENGTH = 140
+const BODYVIEWLENGTH = 280
+
 app.get('/', (req, res) => {
-  res.render('home', {content: homeStartingContent})
+  res.render('home', {posts: blogPosts, titleLength: TITLEVIEWLENGTH, bodyLength: BODYVIEWLENGTH})
 })
 
 app.get('/about', (req, res) => {
@@ -27,7 +38,27 @@ app.get('/contact', (req, res) => {
   res.render('contact', {content: contactContent})
 })
 
+app.get('/compose', (req, res) => {
+  res.render('compose', {content: contactContent})
+})
 
+app.get('/posts/:postid', (req, res) => {
+  const postid = req.params.postid
+  res.render('post', {posts: blogPosts, id: postid})
+})
+
+app.post('/compose', (req, res) => {
+  let newBlogPost = {}
+  // Capture the various post elements (Title and Body), then generate a suitable URL for routing
+  // URL should be lowercase and no spaces
+  newBlogPost.id = req.body.blogTitle.toLowerCase().replaceAll(" ", "-")
+  newBlogPost.title = req.body.blogTitle
+  newBlogPost.body = req.body.blogBody
+  // Append post to Global Var, which is an array of post objects
+  blogPosts.push(newBlogPost)
+  // Finally, send back to the homepage ('/') and re-render
+  res.redirect('/')
+})
 
 
 

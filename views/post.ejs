@@ -1,0 +1,12 @@
+<%- include('partials/header') -%>
+
+<% for (let i = 0; i < posts.length; i++) { %>
+    <% if (id === posts[i].id) { %>
+        <!-- Title -->
+        <h2><%= posts[i].title %></h2>
+        <!-- Body -->
+        <p><%= posts[i].body %></p>
+    <% } %>
+<% } %>
+
+<%- include('partials/footer') -%>

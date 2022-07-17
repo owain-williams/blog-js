@@ -3,6 +3,10 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const ejs = require("ejs");
+const _ = require("lodash");
+const mongoose = require("mongoose")
+
+const dbURL = "mongodb+srv://AndersDigital:AndersD!g!tal1405@blogsitejs.2fymmta.mongodb.net/?retryWrites=true&w=majority"
 
 const homeStartingContent = "Lacus vel facilisis volutpat est velit egestas dui id ornare. Semper auctor neque vitae tempus quam. Sit amet cursus sit amet dictum sit amet justo. Viverra tellus in hac habitasse. Imperdiet proin fermentum leo vel orci porta. Donec ultrices tincidunt arcu non sodales neque sodales ut. Mattis molestie a iaculis at erat pellentesque adipiscing. Magnis dis parturient montes nascetur ridiculus mus mauris vitae ultricies. Adipiscing elit ut aliquam purus sit amet luctus venenatis lectus. Ultrices vitae auctor eu augue ut lectus arcu bibendum at. Odio euismod lacinia at quis risus sed vulputate odio ut. Cursus mattis molestie a iaculis at erat pellentesque adipiscing.";
 const aboutContent = "Hac habitasse platea dictumst vestibulum rhoncus est pellentesque. Dictumst vestibulum rhoncus est pellentesque elit ullamcorper. Non diam phasellus vestibulum lorem sed. Platea dictumst quisque sagittis purus sit. Egestas sed sed risus pretium quam vulputate dignissim suspendisse. Mauris in aliquam sem fringilla. Semper risus in hendrerit gravida rutrum quisque non tellus orci. Amet massa vitae tortor condimentum lacinia quis vel eros. Enim ut tellus elementum sagittis vitae. Mauris ultrices eros in cursus turpis massa tincidunt dui.";
@@ -11,63 +15,58 @@ const contactContent = "Scelerisque eleifend donec pretium vulputate sapien. Rho
 const app = express();
 
 app.set('view engine', 'ejs');
+
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(express.static("public"));
 
-const blogPosts = [
-  {
-    id: "some-lorem-ipsum",
-    title: "Some Lorem Ipsum",
-    body: "Lacus vel facilisis volutpat est velit egestas dui id ornare. Semper auctor neque vitae tempus quam. Sit amet cursus sit amet dictum sit amet justo. Viverra tellus in hac habitasse. Imperdiet proin fermentum leo vel orci porta. Donec ultrices tincidunt arcu non sodales neque sodales ut. Mattis molestie a iaculis at erat pellentesque adipiscing. Magnis dis parturient montes nascetur ridiculus mus mauris vitae ultricies. Adipiscing elit ut aliquam purus sit amet luctus venenatis lectus. Ultrices vitae auctor eu augue ut lectus arcu bibendum at. Odio euismod lacinia at quis risus sed vulputate odio ut. Cursus mattis molestie a iaculis at erat pellentesque adipiscing."
-  }
-]
-// Set up Constants
-// View lengths truncate long post titles and bodies
-const TITLEVIEWLENGTH = 140
-const BODYVIEWLENGTH = 280
+let posts = [];
 
-app.get('/', (req, res) => {
-  res.render('home', {posts: blogPosts, titleLength: TITLEVIEWLENGTH, bodyLength: BODYVIEWLENGTH})
-})
+app.get("/", function(req, res){
+  res.render("home", {
+    startingContent: homeStartingContent,
+    posts: posts
+    });
+});
 
-app.get('/about', (req, res) => {
-  res.render('about', {content: aboutContent})
-})
+app.get("/about", function(req, res){
+  res.render("about", {aboutContent: aboutContent});
+});
 
-app.get('/contact', (req, res) => {
-  res.render('contact', {content: contactContent})
-})
+app.get("/contact", function(req, res){
+  res.render("contact", {contactContent: contactContent});
+});
 
-app.get('/compose', (req, res) => {
-  res.render('compose', {content: contactContent})
-})
+app.get("/compose", function(req, res){
+  res.render("compose");
+});
 
-app.get('/posts/:postid', (req, res) => {
-  const postid = req.params.postid
-  res.render('post', {posts: blogPosts, id: postid})
-})
+app.post("/compose", function(req, res){
+  const post = {
+    title: req.body.postTitle,
+    content: req.body.postBody
+  };
 
-app.post('/compose', (req, res) => {
-  let newBlogPost = {}
-  // Capture the various post elements (Title and Body), then generate a suitable URL for routing
-  // URL should be lowercase and no spaces
-  newBlogPost.id = req.body.blogTitle.toLowerCase().replaceAll(" ", "-")
-  newBlogPost.title = req.body.blogTitle
-  newBlogPost.body = req.body.blogBody
-  // Append post to Global Var, which is an array of post objects
-  blogPosts.push(newBlogPost)
-  // Finally, send back to the homepage ('/') and re-render
-  res.redirect('/')
-})
+  posts.push(post);
 
+  res.redirect("/");
 
+});
 
+app.get("/posts/:postName", function(req, res){
+  const requestedTitle = _.lowerCase(req.params.postName);
 
+  posts.forEach(function(post){
+    const storedTitle = _.lowerCase(post.title);
 
+    if (storedTitle === requestedTitle) {
+      res.render("post", {
+        title: post.title,
+        content: post.content
+      });
+    }
+  });
 
-
-
-
+});
 
 app.listen(3000, function() {
   console.log("Server started on port 3000");
